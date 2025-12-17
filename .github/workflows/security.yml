@@ -1,4 +1,3 @@
-'EOF'
 name: Advanced Security Pipeline
 on: [push, pull_request]
 
@@ -97,4 +96,3 @@ PYSCRIPT
         echo "   • Professional security tooling"
         echo "   • Ready-for-production CI/CD pipeline"
         echo "================================================"
-EOF
