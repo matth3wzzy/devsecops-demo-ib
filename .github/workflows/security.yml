@@ -29,36 +29,17 @@ jobs:
     - name: Show Bandit summary
       run: |
         echo "=== BANDIT SECURITY REPORT SUMMARY ==="
-        python3 << 'PYSCRIPT'
-import json
-try:
-    with open('bandit-full-report.json') as f:
-        data = json.load(f)
-    
-    issues = data.get('results', [])
-    print(f'Total issues found: {len(issues)}')
-    
-    # Group by vulnerability type
-    vuln_types = {}
-    for issue in issues:
-        test_name = issue.get('test_name', 'Unknown')
-        vuln_types[test_name] = vuln_types.get(test_name, 0) + 1
-    
-    print('\nBreakdown by vulnerability type:')
-    for vuln_type, count in sorted(vuln_types.items()):
-        print(f'  • {vuln_type}: {count} issues')
-    
-    print('\nExpected vulnerabilities in demo code:')
-    print('   • SQL Injection (B608, B607)')
-    print('   • Command Injection (B602, B604)')
-    print('   • Hardcoded Secrets (B105, B106, B107)')
-    print('   • Insecure Deserialization (B403)')
-    print('   • Weak Cryptography (B303, B304)')
-    
-except Exception as e:
-    print(f'Error reading report: {e}')
-PYSCRIPT
-    
+        echo "Bandit scan completed. Full report saved to bandit-full-report.json"
+        echo ""
+        echo "Expected vulnerabilities in demo code:"
+        echo "   • SQL Injection (B608, B607)"
+        echo "   • Command Injection (B602, B604)"
+        echo "   • Hardcoded Secrets (B105, B106, B107)"
+        echo "   • Insecure Deserialization (B403)"
+        echo "   • Weak Cryptography (B303, B304)"
+        echo ""
+        echo "✅ For full results, check the uploaded artifact."
+
     - name: Run Semgrep with security rules
       run: |
         echo "Running Semgrep - Multi-language SAST..."
