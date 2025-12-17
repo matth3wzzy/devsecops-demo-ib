@@ -51,7 +51,7 @@ jobs:
         echo "Semgrep analysis completed"
     
     - name: Save comprehensive reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-reports-comprehensive
         path: |
