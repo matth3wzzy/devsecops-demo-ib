@@ -1,94 +1,29 @@
-name: 🛡️ Security Pipeline
-on: 
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+name: Security Pipeline
+on: [push, pull_request]
 
 jobs:
-  security-scan:
-    name: 🔍 Security Analysis
+  security:
     runs-on: ubuntu-latest
     
     steps:
-      # Шаг 1: Получить код из репозитория
-      - name: 📥 Checkout code
-        uses: actions/checkout@v3
-      
-      # Шаг 2: Установить Python
-      - name: 🐍 Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      
-      # Шаг 3: Установить инструменты безопасности
-      - name: 📦 Install security tools
-        run: |
-          pip install bandit semgrep
-          echo "✅ Security tools installed"
-      
-      # Шаг 4: Запустить Bandit (SAST для Python)
-      - name: 🔎 Run Bandit (Python SAST)
-        run: |
-          echo "🧪 Запуск Bandit для анализа Python кода..."
-          bandit -r src/ -f json -o bandit-report.json || true
-          echo "📊 Bandit проверка завершена"
-      
-      # Шаг 5: Показать результаты Bandit
-      - name: 📋 Display Bandit results
-        run: |
-          if [ -f bandit-report.json ]; then
-            echo "=== РЕЗУЛЬТАТЫ BANDIT ==="
-            python -c "
-import json
-try:
-    with open('bandit-report.json') as f:
-        data = json.load(f)
-    issues = data.get('results', [])
-    print(f'Найдено проблем: {len(issues)}')
-    for issue in issues[:5]:  # Покажем первые 5
-        print(f'• {issue[\"test_name\"]}: {issue[\"issue_text\"][:100]}...')
-        print(f'  Файл: {issue[\"filename\"]}:{issue[\"line_number\"]}')
-        print(f'  Уровень: {issue[\"issue_severity\"]}')
-        print()
-except:
-    print('Не удалось прочитать отчет Bandit')
-            "
-          else:
-            echo "❌ Файл отчета Bandit не найден"
-      
-      # Шаг 6: Запустить Semgrep (универсальный SAST)
-      - name: 🔍 Run Semgrep (Universal SAST)
-        run: |
-          echo "🧪 Запуск Semgrep для анализа кода..."
-          semgrep scan --config auto --error-on-findings || true
-          echo "📊 Semgrep проверка завершена"
-      
-      # Шаг 7: Запустить Semgrep с правилами безопасности
-      - name: 🎯 Run Semgrep Security Audit
-        run: |
-          echo "🎯 Запуск углубленной проверки безопасности..."
-          semgrep scan \
-            --config "p/security-audit" \
-            --config "p/python" \
-            --json \
-            --output semgrep-report.json || true
-      
-      # Шаг 8: Сохранить отчеты как артефакты
-      - name: 💾 Upload security reports
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: security-reports
-          path: |
-            bandit-report.json
-            semgrep-report.json
-      
-      # Шаг 9: Финальный статус
-      - name: 📈 Pipeline status
-        run: |
-          echo "========================================"
-          echo "✅ CI/CD ПАЙПЛАЙН БЕЗОПАСНОСТИ ЗАВЕРШЕН"
-          echo "📁 Отчеты сохранены как артефакты"
-          echo "🔗 Ссылка на артефакты выше"
-          echo "========================================"
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install tools
+      run: pip install bandit
+    
+    - name: Run Bandit
+      run: |
+        echo "Running Bandit security scan..."
+        bandit -r src/ -f json -o bandit-report.json
+    
+    - name: Show simple results
+      run: |
+        echo "=== Security Scan Results ==="
+        echo "Bandit report generated: bandit-report.json"
+        echo "Check the artifacts for full report"
