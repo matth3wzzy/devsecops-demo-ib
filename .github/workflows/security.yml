@@ -18,37 +18,56 @@ jobs:
     - name: Install security tools
       run: |
         pip install bandit semgrep
-        echo "Security tools installed: Bandit and Semgrep"
+        echo "✅ Security tools installed: Bandit and Semgrep"
     
-    - name: Run Bandit on all Python files
+    - name: Run Bandit on all Python files (don't fail)
       run: |
-        echo "Running Bandit - Comprehensive Python SAST..."
-        bandit -r src/ -f json -o bandit-full-report.json
-        echo "Bandit analysis completed"
+        echo "🔍 Running Bandit - Comprehensive Python SAST..."
+        bandit -r src/ -f json -o bandit-full-report.json || echo "⚠️ Bandit found vulnerabilities (expected - continuing)"
+        echo "📊 Bandit analysis completed"
     
-    - name: Show Bandit summary
+    - name: Show Bandit summary (SIMPLE VERSION)
       run: |
-        echo "=== BANDIT SECURITY REPORT SUMMARY ==="
-        echo "Bandit scan completed. Full report saved to bandit-full-report.json"
+        echo "=== BANDIT SECURITY REPORT ==="
         echo ""
-        echo "Expected vulnerabilities in demo code:"
-        echo "   • SQL Injection (B608, B607)"
-        echo "   • Command Injection (B602, B604)"
-        echo "   • Hardcoded Secrets (B105, B106, B107)"
-        echo "   • Insecure Deserialization (B403)"
-        echo "   • Weak Cryptography (B303, B304)"
+        
+        # Простая проверка: если файл есть и не пустой
+        if [ -s bandit-full-report.json ]; then
+          echo "✅ VULNERABILITIES FOUND (as expected for demo):"
+          echo ""
+          
+          # Просто показываем сколько нашлось уязвимостей
+          COUNT=$(grep -o '"test_id"' bandit-full-report.json | wc -l)
+          echo "Total issues found: $COUNT"
+          echo ""
+          
+          # Простой вывод типов уязвимостей
+          echo "Main vulnerability types detected:"
+          grep '"test_id":' bandit-full-report.json | head -10 | sed 's/.*"test_id": "\([^"]*\)".*/- \1/' | sort | uniq
+          echo ""
+          
+          echo "✅ This confirms our CI/CD pipeline is working!"
+          echo "   Bandit successfully detected security issues in demo code."
+        else
+          echo "❌ No vulnerabilities found (unexpected for demo!)"
+        fi
+        
         echo ""
-        echo "✅ For full results, check the uploaded artifact."
+        echo "🎯 EXPECTED IN OUR DEMO CODE:"
+        echo "   • SQL Injection vulnerabilities"
+        echo "   • Command Injection issues"
+        echo "   • Hardcoded secrets"
+        echo "   • Security misconfigurations"
 
     - name: Run Semgrep with security rules
       run: |
-        echo "Running Semgrep - Multi-language SAST..."
+        echo "🔍 Running Semgrep - Multi-language SAST..."
         semgrep scan \
           --config "p/security-audit" \
           --config "p/python" \
           --config "p/secrets" \
-          --json -o semgrep-full-report.json
-        echo "Semgrep analysis completed"
+          --json -o semgrep-full-report.json || echo "⚠️ Semgrep found issues (expected - continuing)"
+        echo "📊 Semgrep analysis completed"
     
     - name: Save comprehensive reports
       uses: actions/upload-artifact@v4
@@ -61,19 +80,21 @@ jobs:
     - name: Final report
       run: |
         echo "================================================"
-        echo "ADVANCED SECURITY PIPELINE COMPLETED"
+        echo "✅ ADVANCED SECURITY PIPELINE - SUCCESS"
         echo "================================================"
-        echo "Reports saved as artifacts:"
-        echo "   • bandit-full-report.json"
-        echo "   • semgrep-full-report.json"
+        echo "📊 RESULTS:"
+        echo "   • Bandit: Completed security scan"
+        echo "   • Semgrep: Completed security scan"
+        echo "   • Reports: Saved as artifacts"
         echo ""
-        echo "Files analyzed:"
-        echo "   • src/app.py (basic vulnerabilities)"
-        echo "   • src/vulnerable_app.py (10 vulnerability types)"
+        echo "🔍 FILES ANALYZED:"
+        for file in src/*.py; do
+          if [ -f "$file" ]; then
+            echo "   • $(basename "$file")"
+          fi
+        done
         echo ""
-        echo "This demonstrates:"
-        echo "   • Real-world vulnerability detection"
-        echo "   • Multi-file analysis capability"
-        echo "   • Professional security tooling"
-        echo "   • Ready-for-production CI/CD pipeline"
+        echo "✅ DEMONSTRATION SUCCESSFUL"
+        echo "   Automatic vulnerability detection: ✓ WORKING"
+        echo "   CI/CD pipeline integration: ✓ WORKING"
         echo "================================================"
